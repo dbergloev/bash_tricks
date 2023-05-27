@@ -39,3 +39,59 @@ rtrim() {
     echo ""
 }
 ```
+
+__Script__
+
+You can easily make a script and put it in something like `/usr/bin/trim`. 
+
+```sh
+#!/bin/bash
+
+# ...
+# Functions go here
+# ...
+
+declare left=0 right=0 output
+
+while true; do
+    if [ "${1:0:1}" != "-" ]; then
+        break
+    fi
+    
+    for (( i=1; i < ${#1}; i++ )); do
+        case "${1:$i:1}" in
+            "l") left=1;;
+            "r") right=1;;
+            
+            *) echo "Invalid option '${1:$i:1}'" >&2; exit 1
+        esac
+    done
+    
+    shift
+done
+
+if [ -p /dev/stdin ]; then
+    output="$(cat /dev/stdin)"
+
+else
+    output="${1+"$@"}"
+fi
+
+if [ $left -eq 1 ] || [ $right -eq 0 ]; then
+    output="$(ltrim "$output")"
+fi
+
+if [ $right -eq 1 ] || [ $left -eq 0 ]; then
+    output="$(rtrim "$output")"
+fi
+
+echo "$output"
+```
+
+Now you can use it like any other command, both using arguments and by piped input. 
+
+```sh
+trim -r "$str"
+echo "$str" | trim
+trim -rl <<< "$str"
+```
